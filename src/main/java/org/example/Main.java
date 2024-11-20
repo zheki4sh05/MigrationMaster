@@ -1,7 +1,15 @@
 package org.example;
 
 public class Main {
+
+
+
+
     public static void main(String[] args) {
-        System.out.println("Hello world!");
+
+        MasterMigration.migrate("C:/java projects/MigrationMaster/src/main/resources/application.properties",
+                "C:/java projects/MigrationMaster/src/main/resources/changelogs");
+
+
     }
 }
