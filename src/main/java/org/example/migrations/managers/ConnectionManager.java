@@ -11,6 +11,7 @@ public final class ConnectionManager {
     private static final  String mysqlDriverName = "com.mysql.cj.jdbc.Driver";
     private static final  String postgresDriverName= "org.postgresql.Driver";
 
+    private static Boolean isLoaded = false;
 
 
     private static Connection connection;
@@ -20,17 +21,21 @@ public final class ConnectionManager {
 
             switch (properties.getDriverName()){
                 case mysqlDriverName:{
-                    Class.forName(mysqlDriverName).getDeclaredConstructor().newInstance();
+                    if(!isLoaded)
+                        Class.forName(mysqlDriverName).getDeclaredConstructor().newInstance();
                     break;
                 }
                 case postgresDriverName:{
-                    Class.forName("com.mysql.cj.jdbc.Driver").getDeclaredConstructor().newInstance();
+                    if(!isLoaded)
+                        Class.forName("com.mysql.cj.jdbc.Driver").getDeclaredConstructor().newInstance();
+
                     break;
                 }
                 default:{
                     throw new DbDriverManagerException("Error: wrong database driver name");
                 }
             }
+            isLoaded = true;
 
         }catch(ClassNotFoundException e){
             throw new RuntimeException(e);
@@ -55,5 +60,15 @@ public final class ConnectionManager {
     }
     public static Connection getConnection() {
         return connection;
+    }
+
+    public static void stopConnection() {
+
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
     }
 }

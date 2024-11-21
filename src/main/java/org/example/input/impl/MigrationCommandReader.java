@@ -3,6 +3,7 @@ package org.example.input.impl;
 import org.example.command.*;
 import org.example.input.interfaces.*;
 import org.example.migrations.*;
+import org.example.migrations.managers.*;
 
 public class MigrationCommandReader implements ConsoleInput, MasterMigrationApi, RemoteInput {
 
@@ -18,5 +19,9 @@ public class MigrationCommandReader implements ConsoleInput, MasterMigrationApi,
 
     private void start(MigrationCommand migrationCommand){
         migrationTool.migrate(migrationCommand);
+    }
+
+    private void stop(){
+        ConnectionManager.stopConnection();
     }
 }

@@ -1,16 +1,18 @@
 package org.example.migrations.readers;
+import org.example.entity.*;
 import org.example.exceptions.*;
 
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.zip.*;
 
 import static org.example.settings.BaseSettings.fileMigrationExtension;
 
 
 public class MigrationFileReader {
 
-    public HashMap<String, String> readFilesFromFolder(String folderPath) {
+    public HashMap<String, Resource> readFilesFromFolder(String folderPath) {
 
         List<String> list = readAllNamesFromChangelog(folderPath);
 
@@ -53,12 +55,25 @@ public class MigrationFileReader {
         return  fileNames;
     }
 
-    private HashMap<String, String> readFilesByNames(String folderPath, List<String> fileNames){
-        HashMap<String, String> fileContentMap = new LinkedHashMap<>();
+    private Long calculateChecksum(byte[] bytes) {
+        final CRC32 crc32 = new CRC32();
+
+        crc32.update(bytes);
+
+        return crc32.getValue();
+    }
+    private HashMap<String, Resource> readFilesByNames(String folderPath, List<String> fileNames){
+        HashMap<String, Resource> fileContentMap = new LinkedHashMap<>();
         try {
 
             for(String file: fileNames ){
-                fileContentMap.put(file, new String(Files.readAllBytes(Paths.get(folderPath))));
+
+                byte[] bytes = Files.readAllBytes(Paths.get(folderPath+"/"+file));
+
+                fileContentMap.put(file, Resource.builder()
+                                .file(new String(bytes))
+                                .checksum(calculateChecksum(bytes))
+                        .build());
             }
 
 
@@ -69,5 +84,7 @@ public class MigrationFileReader {
         return fileContentMap;
 
     }
+
+
 
 }

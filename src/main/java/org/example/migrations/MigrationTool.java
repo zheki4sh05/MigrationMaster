@@ -27,11 +27,7 @@ public class MigrationTool {
 
          properties.checkProperties(properties);
 
-         Connection connection = ConnectionManager.createConnection(properties);
-
-         migrationManager.execute(connection,migrationCommand.getChangelogsPath());
-
-
+         migrationManager.execute(migrationCommand.getChangelogsPath(), properties);
 
     }
 

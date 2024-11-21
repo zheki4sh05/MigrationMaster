@@ -32,7 +32,7 @@ public class PropertiesUtil {
         return UserProperties.builder()
                 .url(properties.getProperty(appName+".database.url"))
                 .driverName(properties.getProperty(appName+".database.driver"))
-                .username(properties.getProperty(appName+".database.username"))
+                .username(properties.getProperty(appName+".database.name"))
                 .password(properties.getProperty(appName+".database.password"))
                 .build();
     }

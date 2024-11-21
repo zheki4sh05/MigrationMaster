@@ -12,4 +12,5 @@ public class Migration {
     private Timestamp executed;
     private String state;
     private Boolean locked;
+
 }
