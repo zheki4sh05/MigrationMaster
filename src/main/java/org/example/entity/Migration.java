@@ -6,7 +6,6 @@ import java.sql.*;
 @Data
 @Builder
 public class Migration {
-    private Integer id;
     private String script;
     private Long checksum;
     private Timestamp executed;

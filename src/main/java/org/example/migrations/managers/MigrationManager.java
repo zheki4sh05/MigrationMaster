@@ -6,7 +6,6 @@ import org.example.exceptions.*;
 import org.example.migrations.readers.*;
 import org.example.migrations.utils.*;
 
-import java.sql.*;
 import java.util.*;
 
 public class MigrationManager {
@@ -33,10 +32,7 @@ public class MigrationManager {
                     return;
                 }
 
-
         }
-
-
 
     }
     public void execute( String changelogsPath, UserProperties properties) {

@@ -24,8 +24,7 @@ public class MigrationExecutor {
             
            CREATE TABLE %s 
            
-           ( id SERIAL PRIMARY KEY, 
-           script VARCHAR(255), 
+           (script VARCHAR(255) PRIMARY KEY, 
            checksum BIGINT, 
            executed TIMESTAMP, 
            state VARCHAR(255), 
@@ -36,7 +35,7 @@ public class MigrationExecutor {
     private final String saveSql="insert into "+tableName+ " (script, checksum, executed, state, locked) values (?, ?, ?, ?, ?) ";
 
 
-    private final String updateSql="update "+tableName+ " set state=?, locked=? where id=? ";
+    private final String updateSql="update "+tableName+ " set state=?, locked=? where script=? ";
 
     public MigrationExecutor() {
     }
@@ -70,7 +69,6 @@ public class MigrationExecutor {
     private Migration buildMigration(ResultSet resultSet) throws SQLException{
 
         return Migration.builder()
-                .id(resultSet.getInt("id"))
                 .checksum(resultSet.getLong("checksum"))
                 .executed(resultSet.getTimestamp("executed"))
                 .script(resultSet.getString("script"))
@@ -115,7 +113,6 @@ public class MigrationExecutor {
                     ResultSet generatedKeys = statement.getGeneratedKeys();
                     generatedKeys.next();
                     return Migration.builder()
-                            .id(id)
                             .checksum(checksum)
                             .locked(locked)
                             .state(state)
@@ -133,7 +130,7 @@ public class MigrationExecutor {
             PreparedStatement statement = connection1.prepareStatement(updateSql);
             statement.setString(1, migration.getState());
             statement.setBoolean(2, migration.getLocked());
-            statement.setInt(3, migration.getId());
+            statement.setString(3, migration.getScript());
              statement.executeUpdate();
 
         }

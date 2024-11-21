@@ -19,22 +19,8 @@ public final class ConnectionManager {
 
         try{
 
-            switch (properties.getDriverName()){
-                case mysqlDriverName:{
-                    if(!isLoaded)
-                        Class.forName(mysqlDriverName).getDeclaredConstructor().newInstance();
-                    break;
-                }
-                case postgresDriverName:{
-                    if(!isLoaded)
-                        Class.forName("com.mysql.cj.jdbc.Driver").getDeclaredConstructor().newInstance();
-
-                    break;
-                }
-                default:{
-                    throw new DbDriverManagerException("Error: wrong database driver name");
-                }
-            }
+            if(!isLoaded)
+                Class.forName(properties.getDriverName()).getDeclaredConstructor().newInstance();
             isLoaded = true;
 
         }catch(ClassNotFoundException e){

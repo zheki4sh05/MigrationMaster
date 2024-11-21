@@ -15,13 +15,14 @@ public class MigrationCommandReader implements ConsoleInput, MasterMigrationApi,
     @Override
     public void read(MigrationCommand migrationCommand) {
         start(migrationCommand);
+//        stop();
     }
 
     private void start(MigrationCommand migrationCommand){
         migrationTool.migrate(migrationCommand);
     }
 
-    private void stop(){
-        ConnectionManager.stopConnection();
-    }
+//    private void stop(){
+//        ConnectionManager.stopConnection();
+//    }
 }
