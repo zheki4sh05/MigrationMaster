@@ -6,7 +6,7 @@ import org.example.exceptions.*;
 
 @Data
 @Builder
-@Slf4j
+//@Slf4j
 public class UserProperties {
     private String url;
     private String username;
