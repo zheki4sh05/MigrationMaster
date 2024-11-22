@@ -10,13 +10,16 @@ import static org.example.settings.BaseSettings.appName;
 import static org.example.settings.BaseSettings.baseConfigFileName;
 
 public class PropertiesUtil {
-    public UserProperties readProperties(String propertiesPass) {
+    private static UserProperties userProperties;
+    public void readProperties(String propertiesPass) {
 
         Properties properties = new Properties();
         try (FileInputStream input = new FileInputStream(propertiesPass)) {
             properties.load(input);
 
-            return parseProperties(properties);
+            userProperties = parseProperties(properties);
+
+            UserProperties.checkProperties(userProperties);
 
         }catch (FileNotFoundException e) {
             throw new ApplicationPropertiesException("Error: "+baseConfigFileName + " not found!");
@@ -34,6 +37,12 @@ public class PropertiesUtil {
                 .driverName(properties.getProperty(appName+".database.driver"))
                 .username(properties.getProperty(appName+".database.name"))
                 .password(properties.getProperty(appName+".database.password"))
+                .rollbackAll(Boolean.valueOf(properties.getProperty(appName+"database.rollbackAll")))
                 .build();
     }
+
+    public static UserProperties getProperties(){
+        return userProperties;
+    }
+
 }

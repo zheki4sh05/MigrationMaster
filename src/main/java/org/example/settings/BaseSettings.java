@@ -11,6 +11,4 @@ public class BaseSettings {
     public final static String fileMigrationExtension=".sql";
     public final static String nameVersionPatter="V(\\d+)";
     public final static String tableName ="migrations";
-
-
 }

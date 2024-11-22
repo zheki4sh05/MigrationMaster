@@ -6,7 +6,6 @@ import static org.example.settings.BaseSettings.nameVersionPatter;
 
 public class ChangelogMaster {
 
-
     public static Boolean isCorrect(String fileName){
         Pattern pattern = Pattern.compile(nameVersionPatter);
         Matcher matcher =pattern.matcher(fileName);

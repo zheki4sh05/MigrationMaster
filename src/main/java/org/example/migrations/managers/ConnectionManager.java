@@ -2,6 +2,7 @@ package org.example.migrations.managers;
 
 import org.example.exceptions.*;
 import org.example.migrations.readers.*;
+import org.example.migrations.utils.*;
 
 import java.lang.reflect.*;
 import java.sql.*;
@@ -15,7 +16,9 @@ public final class ConnectionManager {
 
 
     private static Connection connection;
-    public static  Connection createConnection(UserProperties properties) {
+    public static  Connection createConnection() {
+
+        UserProperties properties = PropertiesUtil.getProperties();
 
         try{
 

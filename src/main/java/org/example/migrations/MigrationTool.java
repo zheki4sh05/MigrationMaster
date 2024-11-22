@@ -23,11 +23,9 @@ public class MigrationTool {
 
     public void migrate(MigrationCommand migrationCommand){
 
-         UserProperties properties = propertiesUtil.readProperties(migrationCommand.getPropertiesPass());
+        propertiesUtil.readProperties(migrationCommand.getPropertiesPass());
 
-         properties.checkProperties(properties);
-
-         migrationManager.execute(migrationCommand.getChangelogsPath(), properties);
+         migrationManager.execute(migrationCommand.getChangelogsPath());
 
     }
 

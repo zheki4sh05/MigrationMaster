@@ -21,8 +21,12 @@ public class MigrationManager {
     }
     private void callExecutor(HashMap<String, Resource> filesData){
 
+        if(PropertiesUtil.getProperties().getRollbackAll()){
 
-        for(Map.Entry<String,Resource> entry : filesData.entrySet()){
+
+
+        }else{
+            for(Map.Entry<String,Resource> entry : filesData.entrySet()){
 
                 Migration migration = migrationExecutor.execute(entry.getKey(), entry.getValue());
                 System.out.println(migration);
@@ -32,14 +36,16 @@ public class MigrationManager {
                     return;
                 }
 
+            }
         }
 
+
+
+
     }
-    public void execute( String changelogsPath, UserProperties properties) {
+    public void execute( String changelogsPath) {
 
-        migrationExecutor.setProperties(properties);
-
-        HashMap<String, Resource> filesData = migrationFileReader.readFilesFromFolder(changelogsPath);
+        LinkedHashMap<String, Resource> filesData = migrationFileReader.readFilesFromFolder(changelogsPath);
 
         if(filesData.isEmpty())
             throw new MigrationFileException("Error: changelog directory is empty. No any migrations files found");

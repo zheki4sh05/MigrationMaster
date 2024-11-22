@@ -15,9 +15,6 @@ import static org.example.settings.BaseSettings.tableName;
 
 public class MigrationExecutor {
 
-    private UserProperties properties;
-
-
     private final String migrationHistorySql = "select * from migrations";
 
     private final String createTableSql = """
@@ -40,15 +37,10 @@ public class MigrationExecutor {
     public MigrationExecutor() {
     }
 
-    public void setProperties(UserProperties properties) {
-
-        this.properties = properties;
-
-    }
 
     public List<Migration> getMigrations(){
 
-        try(Connection connection = ConnectionManager.createConnection(properties)) {
+        try(Connection connection = ConnectionManager.createConnection()) {
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery(migrationHistorySql);
 
@@ -78,7 +70,7 @@ public class MigrationExecutor {
     }
 
     public Boolean isHistoryExists(){
-        try( Connection connection1 = ConnectionManager.createConnection(properties)){
+        try( Connection connection1 = ConnectionManager.createConnection()){
 
                 DatabaseMetaData databaseMetaData = connection1.getMetaData();
                 try (ResultSet rs = databaseMetaData.getTables(null, null, tableName, null)) { return rs.next();}
@@ -90,7 +82,7 @@ public class MigrationExecutor {
 
     public void createMigrationTable(){
 
-        try(Connection connection = ConnectionManager.createConnection(properties);) {
+        try(Connection connection = ConnectionManager.createConnection();) {
 
             Statement statement = connection.createStatement();
             statement.execute(String.format(createTableSql, tableName));
@@ -102,7 +94,7 @@ public class MigrationExecutor {
     }
     public Migration createMigration(String scriptName, String state, Long checksum, Boolean locked) throws SQLException {
 
-                try( Connection connection1 = ConnectionManager.createConnection(properties)){
+                try( Connection connection1 = ConnectionManager.createConnection()){
                     PreparedStatement statement = connection1.prepareStatement(saveSql, Statement.RETURN_GENERATED_KEYS);
                     statement.setString(1, scriptName);
                     statement.setLong(2, checksum);
@@ -126,7 +118,7 @@ public class MigrationExecutor {
     public void updateMigration(Migration migration) throws SQLException{
 
 
-        try( Connection connection1 = ConnectionManager.createConnection(properties)) {
+        try( Connection connection1 = ConnectionManager.createConnection()) {
             PreparedStatement statement = connection1.prepareStatement(updateSql);
             statement.setString(1, migration.getState());
             statement.setBoolean(2, migration.getLocked());
@@ -140,7 +132,7 @@ public class MigrationExecutor {
     }
 
     private void executeScript(String script) throws SQLException {
-        Connection connection1 = ConnectionManager.createConnection(properties);
+        Connection connection1 = ConnectionManager.createConnection();
         try {
 
             Statement statement = connection1.createStatement();
@@ -196,6 +188,40 @@ public class MigrationExecutor {
 
         }
 
+        return newMigration;
+    }
+
+
+    public Migration executeAll(String scriptName, Resource resource) {
+        Migration newMigration=null;
+
+        try {
+
+            newMigration = createMigration(scriptName, State.PENDING.state(), resource.getChecksum(), true);
+
+            executeScript(resource.getFile());
+
+            newMigration.setState(State.SUCCESS.state());
+
+            newMigration.setLocked(false);
+
+            updateMigration(newMigration);
+
+
+        }catch (SQLException e){
+
+            try {
+                if(newMigration!=null){
+                    newMigration.setState(State.FAILED.state());
+                    newMigration.setLocked(false);
+                    updateMigration(newMigration);
+                }
+            } catch (SQLException ex) {
+                throw new MigrationExecutionException("!!!!");
+            }
+
+
+        }
 
         return newMigration;
     }
