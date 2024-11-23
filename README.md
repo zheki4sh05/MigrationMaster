@@ -1,5 +1,6 @@
-# status: develop pessimistic lock
-# soon: optimistic lock, CLI, Reports, testing and etc.
+# status: optimistic lock
+# soon: CLI, Reports, testing and etc.
+# created: pessimistic lock
 # Migration Master
 Migration Master - is a tool for managing database migrations.
 
