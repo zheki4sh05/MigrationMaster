@@ -10,7 +10,7 @@ import java.util.*;
 import java.util.function.*;
 
 import static org.example.settings.BaseSettings.tableLockName;
-import static org.example.settings.BaseSettings.tableName;
+
 
 public class LockingManager {
 
@@ -32,6 +32,11 @@ public class LockingManager {
     private final String unlockTable = "update "+tableLockName+ " set locked=false where id=1 ";
 
 
+
+    private final List<Migration> migrations = new ArrayList<>();
+    public List<Migration> migrations() {
+        return migrations;
+    }
 
     private void createIfNotExists(){
 
@@ -149,7 +154,7 @@ public class LockingManager {
 
     private Boolean makeMigrations(Function<HashMap<String, Resource>, List<Migration>> executor , HashMap<String, Resource> list) throws InterruptedException,SQLException {
         if (tryLock()) {
-            executor.apply(list);
+            migrations.addAll(executor.apply(list));
             return true;
         }else{
 

@@ -2,6 +2,7 @@ package org.example.migrations.readers;
 
 import org.example.entity.*;
 import org.example.exceptions.*;
+import org.example.migrations.utils.*;
 
 import java.util.*;
 import java.util.regex.*;
@@ -45,6 +46,20 @@ public class ChangelogMaster {
             }
         }
 
+//        var migration = migrationList.getLast();
+//
+//        if(migration.getState().equals(State.FAILED.state())
+//                && !Objects.equals(
+//                filesData.get(migration.getScript()).getChecksum(),
+//                migration.getChecksum())){
+//
+//            hashMap.put(migration.getScript(), filesData.get(migration.getScript()));
+//
+//        }else{
+//            throw new MigrationExecutionException("Error: last migration was fail!");
+//        }
+
+
         return hashMap;
     }
     private static Boolean hasMigration(String name, List<Migration> migrationList){
@@ -53,7 +68,7 @@ public class ChangelogMaster {
         Optional<Migration> result = migrationList
                 .stream()
                 .filter(item -> item.getScript().equals(name)).findAny();
-        return  !result.isEmpty();
+        return result.isPresent();
     }
 
 

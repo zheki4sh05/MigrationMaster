@@ -34,6 +34,8 @@ public class MigrationExecutor {
 
     private final String updateSql="update "+tableName+ " set state=?, locked=? where script=? ";
 
+    private final String deleteSql = "delete from "+tableName+ " where script=?";
+
     public MigrationExecutor() {
     }
 
@@ -92,6 +94,8 @@ public class MigrationExecutor {
         };
 
     }
+
+
     public Migration createMigration(String scriptName, String state, Long checksum, Boolean locked) throws SQLException {
 
                 try( Connection connection1 = ConnectionManager.createConnection()){
@@ -101,7 +105,7 @@ public class MigrationExecutor {
                     statement.setTimestamp(3, Timestamp.valueOf(LocalDateTime.now()));
                     statement.setString(4, state);
                     statement.setBoolean(5, locked);
-                    int id=  statement.executeUpdate();
+                     statement.executeUpdate();
                     ResultSet generatedKeys = statement.getGeneratedKeys();
                     generatedKeys.next();
                     return Migration.builder()
@@ -115,27 +119,32 @@ public class MigrationExecutor {
 
     }
 
-    public void updateMigration(Migration migration) throws SQLException{
-
-
+    private void updateMigration(Migration migration) throws SQLException{
         try( Connection connection1 = ConnectionManager.createConnection()) {
             PreparedStatement statement = connection1.prepareStatement(updateSql);
             statement.setString(1, migration.getState());
             statement.setBoolean(2, migration.getLocked());
             statement.setString(3, migration.getScript());
              statement.executeUpdate();
-
         }
-
-
-
     }
+
+    private void deleteMigration(Migration migration) throws SQLException{
+        try(Connection connection1 = ConnectionManager.createConnection()){
+            PreparedStatement statement = connection1.prepareStatement(deleteSql);
+            statement.setString(1, migration.getScript());
+            statement.executeUpdate();
+        }
+    }
+
+
 
     private void executeScript(String script) throws SQLException {
         Connection connection1 = ConnectionManager.createConnection();
+        Statement statement = connection1.createStatement();
         try {
 
-            Statement statement = connection1.createStatement();
+
 
             connection1.setAutoCommit(false);
 
@@ -152,12 +161,17 @@ public class MigrationExecutor {
             }
             throw new SQLException(e.getMessage());
         }finally {
+            statement.close();
             connection1.close();
         }
 
     }
 
-    public Migration execute(String scriptName, Resource resource) {
+    public List<Migration> execute(HashMap<String, Resource> map) {
+
+        String scriptName = map.keySet().stream().findFirst().get();
+        Resource resource = map.values().stream().findFirst().get();
+
         Migration newMigration=null;
 
         try {
@@ -167,8 +181,6 @@ public class MigrationExecutor {
             executeScript(resource.getFile());
 
             newMigration.setState(State.SUCCESS.state());
-
-            newMigration.setLocked(false);
 
             updateMigration(newMigration);
 
@@ -180,42 +192,35 @@ public class MigrationExecutor {
                     newMigration.setState(State.FAILED.state());
                     newMigration.setLocked(false);
                    updateMigration(newMigration);
+//                    deleteMigration(newMigration);
                 }
             } catch (SQLException ex) {
                 throw new MigrationExecutionException("!!!!");
             }
 
-
         }
-
-        return newMigration;
+        List<Migration> migrations = new ArrayList<>();
+        migrations.add(newMigration);
+        return migrations;
     }
 
 
     public List<Migration> executeAll(HashMap<String, Resource> updateData){
 
         List<Migration> migrations = new ArrayList<>();
-
         Migration migration=null;
-
         Connection connection1 = ConnectionManager.createConnection();
         try {
-
             Statement statement = connection1.createStatement();
-
             connection1.setAutoCommit(false);
-
             for(Map.Entry<String,Resource> entry : updateData.entrySet()){
-
                 migration =  createMigration(entry.getKey(), State.PENDING.state(), entry.getValue().getChecksum(), true);
-
-               statement.executeUpdate(entry.getValue().getFile());
-
+              statement.executeUpdate(entry.getValue().getFile());
                 migration.setState(State.SUCCESS.state());
                 migration.setExecuted(Timestamp.valueOf(LocalDateTime.now()));
                 updateMigration(migration);
+                migrations.add(migration);
             }
-
 
             connection1.commit();
 
@@ -227,6 +232,8 @@ public class MigrationExecutor {
                     migration.setState(State.FAILED.state());
                     migration.setExecuted(Timestamp.valueOf(LocalDateTime.now()));
                     updateMigration(migration);
+//                    deleteMigration(migration);
+                    migrations.add(migration);
                 }
             } catch (SQLException ex) {
                 throw new RuntimeException(ex);
