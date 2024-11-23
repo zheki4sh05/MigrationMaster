@@ -13,6 +13,8 @@ public class UserProperties {
     private String password;
     private String driverName;
     private Boolean rollbackAll=true;
+    private Integer retryTime=3000;
+    private Integer rateLimiter=0;
 
     public static void checkProperties(UserProperties properties) throws ApplicationPropertiesException {
 

@@ -1,6 +1,7 @@
 package org.example.migrations;
 
 import org.example.command.*;
+import org.example.migrations.locking.*;
 import org.example.migrations.managers.*;
 import org.example.migrations.readers.*;
 import org.example.migrations.utils.*;
@@ -8,10 +9,7 @@ import org.example.migrations.utils.*;
 import java.sql.*;
 
 public class MigrationTool {
-
     private final MigrationManager migrationManager;
-
-
 
     private final PropertiesUtil propertiesUtil;
 
@@ -25,7 +23,13 @@ public class MigrationTool {
 
         propertiesUtil.readProperties(migrationCommand.getPropertiesPass());
 
-         migrationManager.execute(migrationCommand.getChangelogsPath());
+//        if(PropertiesUtil.getProperties().getRollbackAll()){
+//            migrationManager.execute(migrationCommand.getChangelogsPath(), new PessimisticLockingManager());
+//        }else{
+//            migrationManager.execute(migrationCommand.getChangelogsPath(), new PessimisticLockingManager());
+//        }
+
+
 
     }
 

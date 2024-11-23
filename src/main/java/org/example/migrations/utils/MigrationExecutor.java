@@ -192,38 +192,8 @@ public class MigrationExecutor {
     }
 
 
-    public Migration executeAll(String scriptName, Resource resource) {
-        Migration newMigration=null;
-
-        try {
-
-            newMigration = createMigration(scriptName, State.PENDING.state(), resource.getChecksum(), true);
-
-            executeScript(resource.getFile());
-
-            newMigration.setState(State.SUCCESS.state());
-
-            newMigration.setLocked(false);
-
-            updateMigration(newMigration);
-
-
-        }catch (SQLException e){
-
-            try {
-                if(newMigration!=null){
-                    newMigration.setState(State.FAILED.state());
-                    newMigration.setLocked(false);
-                    updateMigration(newMigration);
-                }
-            } catch (SQLException ex) {
-                throw new MigrationExecutionException("!!!!");
-            }
-
-
-        }
-
-        return newMigration;
+    public List<Migration> executeAll(HashMap<String, Resource> updateData) {
+        return new ArrayList<>();
     }
 
 
