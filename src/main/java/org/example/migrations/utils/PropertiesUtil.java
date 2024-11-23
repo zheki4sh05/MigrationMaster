@@ -19,7 +19,9 @@ public class PropertiesUtil {
 
             userProperties = parseProperties(properties);
 
-            UserProperties.checkProperties(userProperties);
+            if(!UserProperties.checkProperties(userProperties))
+                throw new ApplicationPropertiesException("Error: properties are null");
+
 
         }catch (FileNotFoundException e) {
             throw new ApplicationPropertiesException("Error: "+baseConfigFileName + " not found!");
@@ -37,7 +39,9 @@ public class PropertiesUtil {
                 .driverName(properties.getProperty(appName+".database.driver"))
                 .username(properties.getProperty(appName+".database.name"))
                 .password(properties.getProperty(appName+".database.password"))
-                .rollbackAll(Boolean.valueOf(properties.getProperty(appName+"database.rollbackAll")))
+                .rollbackAll(Boolean.valueOf(properties.getProperty(appName+".database.rollbackAll")))
+                .retryTime(Integer.parseInt(properties.getProperty(appName+".database.retryTime")))
+                .rateLimiter(Integer.parseInt(properties.getProperty(appName+".database.rateLimiter")))
                 .build();
     }
 

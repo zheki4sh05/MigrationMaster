@@ -39,7 +39,7 @@ public class LockingManager {
 
             DatabaseMetaData databaseMetaData = connection1.getMetaData();
             try (ResultSet rs = databaseMetaData.getTables(null, null, tableLockName, null)) {
-               if(rs.next()){
+               if(!rs.next()){
                    initLockTable();
                }
             }
@@ -54,9 +54,9 @@ public class LockingManager {
 
             Statement statement = connection.createStatement();
             statement.execute(String.format(createLockTable, tableLockName));
-            System.out.println("Table "+tableName+" is created");
+            System.out.println("Table "+tableLockName+" is created");
             statement.execute(initLockTable);
-            System.out.println("Table "+tableName+" init");
+            System.out.println("Table "+tableLockName+" init");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -67,7 +67,7 @@ public class LockingManager {
 
             Statement statement = connection.createStatement();
             statement.execute(lockTable);
-            System.out.println("Table "+tableName+" locked");
+            System.out.println("Table "+tableLockName+" locked");
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -80,7 +80,7 @@ public class LockingManager {
 
             Statement statement = connection.createStatement();
             statement.execute(unlockTable);
-            System.out.println("Table "+tableName+" locked");
+            System.out.println("Table "+tableLockName+" not locked");
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -98,16 +98,23 @@ public class LockingManager {
             if(limiter==0){
                 while(true) {
 
-                    makeMigrations(executor,list);
 
+                    if(makeMigrations(executor,list)){
+                        unlock();
+                       break;
+                    }
                 }
             }else if(limiter>0){
 
                 int count=limiter;
                 while (count>0){
-
-                    makeMigrations(executor,list);
-                    count--;
+                    System.out.println(count);
+                    if(makeMigrations(executor,list)){
+                        unlock();
+                        break;
+                    }else {
+                        count--;
+                    }
                 }
 
             }
@@ -117,11 +124,6 @@ public class LockingManager {
         }catch (InterruptedException e){
 
         }
-        finally {
-            unlock();
-        }
-
-
 
     }
 
@@ -136,7 +138,7 @@ public class LockingManager {
                 if (!locked) {
                     lock();
                 }
-                return locked;
+                return !locked;
             }
 
         } catch (SQLException e) {
@@ -145,12 +147,17 @@ public class LockingManager {
         return false;
     }
 
-    private void makeMigrations(Function<HashMap<String, Resource>, List<Migration>> executor , HashMap<String, Resource> list) throws InterruptedException,SQLException {
+    private Boolean makeMigrations(Function<HashMap<String, Resource>, List<Migration>> executor , HashMap<String, Resource> list) throws InterruptedException,SQLException {
         if (tryLock()) {
             executor.apply(list);
+            return true;
+        }else{
+
+            Thread.sleep(PropertiesUtil.getProperties().getRetryTime());
+
+            return false;
         }
 
-        Thread.sleep(PropertiesUtil.getProperties().getRetryTime());
     }
 
     };

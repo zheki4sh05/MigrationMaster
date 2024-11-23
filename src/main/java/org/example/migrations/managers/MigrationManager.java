@@ -55,38 +55,40 @@ public class MigrationManager {
 
         }else{
 
+            executeOptimistic(changelogsPath);
+
         }
 
 
-        LinkedHashMap<String, Resource> filesData = migrationFileReader.readFilesFromFolder(changelogsPath);
-
-        if(filesData.isEmpty())
-            throw new MigrationFileException("Error: changelog directory is empty. No any migrations files found");
-
-        if(migrationExecutor.isHistoryExists()){
-
-            List<Migration> migrationList = new ArrayList<>(migrationExecutor.getMigrations());
-
-            if(migrationList.size()==0){
-                throw new MigrationExecutionException("Error: no migrations rows founded, migrations table exists, but is empty!");
-            }
-
-            ChangelogMaster.checkSum(migrationList, filesData);
-//            checkSum(migrationList, filesData);
-
-            HashMap<String, Resource> updateData = ChangelogMaster.processMigrations(migrationList, filesData);
-
-            if(updateData.isEmpty()){
-                System.out.println("Warning: all migrations are applied!");
-                return;
-            }
-
-            callExecutor(updateData);
-
-        }else{
-            migrationExecutor.createMigrationTable();
-            callExecutor(filesData);
-        }
+//        LinkedHashMap<String, Resource> filesData = migrationFileReader.readFilesFromFolder(changelogsPath);
+//
+//        if(filesData.isEmpty())
+//            throw new MigrationFileException("Error: changelog directory is empty. No any migrations files found");
+//
+//        if(migrationExecutor.isHistoryExists()){
+//
+//            List<Migration> migrationList = new ArrayList<>(migrationExecutor.getMigrations());
+//
+//            if(migrationList.size()==0){
+//                throw new MigrationExecutionException("Error: no migrations rows founded, migrations table exists, but is empty!");
+//            }
+//
+//            ChangelogMaster.checkSum(migrationList, filesData);
+////            checkSum(migrationList, filesData);
+//
+//            HashMap<String, Resource> updateData = ChangelogMaster.processMigrations(migrationList, filesData);
+//
+//            if(updateData.isEmpty()){
+//                System.out.println("Warning: all migrations are applied!");
+//                return;
+//            }
+//
+//            callExecutor(updateData);
+//
+//        }else{
+//            migrationExecutor.createMigrationTable();
+//            callExecutor(filesData);
+//        }
 
     }
 
@@ -128,7 +130,9 @@ public class MigrationManager {
 
     private void executePessimistic(String changelogsPath){
 
-        LinkedHashMap<String, Resource> filesData = migrationFileReader.readFilesFromFolder(changelogsPath);
+        HashMap<String, Resource> filesData;
+
+        filesData = migrationFileReader.readFilesFromFolder(changelogsPath);
 
         if(filesData.isEmpty())
             throw new MigrationFileException("Error: changelog directory is empty. No any migrations files found");
@@ -142,28 +146,26 @@ public class MigrationManager {
             }
 
             ChangelogMaster.checkSum(migrationList, filesData);
-//            checkSum(migrationList, filesData);
 
-            HashMap<String, Resource> updateData = ChangelogMaster.processMigrations(migrationList, filesData);
+            filesData = ChangelogMaster.processMigrations(migrationList, filesData);
 
-            if(updateData.isEmpty()){
+            if(filesData.isEmpty()){
                 System.out.println("Warning: all migrations are applied!");
                 return;
             }
 
-//            callExecutor(updateData);
-
-            Function<HashMap<String, Resource>, List<Migration>> func = migrationExecutor::executeAll;
-            lockingManager.executeMigrates(func, updateData);
-
-
         }else{
             migrationExecutor.createMigrationTable();
-            callExecutor(filesData);
+
         }
 
+        Function<HashMap<String, Resource>, List<Migration>> func = migrationExecutor::executeAll;
+        lockingManager.executeMigrates(func, filesData);
+
     }
-    private void executeOptimistic(){
+    private void executeOptimistic(String changelogsPath){
+
+
 
     }
 

@@ -23,13 +23,7 @@ public class MigrationTool {
 
         propertiesUtil.readProperties(migrationCommand.getPropertiesPass());
 
-//        if(PropertiesUtil.getProperties().getRollbackAll()){
-//            migrationManager.execute(migrationCommand.getChangelogsPath(), new PessimisticLockingManager());
-//        }else{
-//            migrationManager.execute(migrationCommand.getChangelogsPath(), new PessimisticLockingManager());
-//        }
-
-
+        migrationManager.execute(migrationCommand.getChangelogsPath());
 
     }
 

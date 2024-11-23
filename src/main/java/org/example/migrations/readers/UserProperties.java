@@ -16,10 +16,12 @@ public class UserProperties {
     private Integer retryTime=3000;
     private Integer rateLimiter=0;
 
-    public static void checkProperties(UserProperties properties) throws ApplicationPropertiesException {
+    public static boolean checkProperties(UserProperties properties) throws ApplicationPropertiesException {
 
             if(properties.getUrl() ==null || properties.driverName==null || properties.username==null || properties.password==null){
-                throw new ApplicationPropertiesException("Error: properties are null");
+                return false;
+            }else {
+                return true;
             }
 
     }

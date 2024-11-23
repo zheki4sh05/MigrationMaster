@@ -192,8 +192,54 @@ public class MigrationExecutor {
     }
 
 
-    public List<Migration> executeAll(HashMap<String, Resource> updateData) {
-        return new ArrayList<>();
+    public List<Migration> executeAll(HashMap<String, Resource> updateData){
+
+        List<Migration> migrations = new ArrayList<>();
+
+        Migration migration=null;
+
+        Connection connection1 = ConnectionManager.createConnection();
+        try {
+
+            Statement statement = connection1.createStatement();
+
+            connection1.setAutoCommit(false);
+
+            for(Map.Entry<String,Resource> entry : updateData.entrySet()){
+
+                migration =  createMigration(entry.getKey(), State.PENDING.state(), entry.getValue().getChecksum(), true);
+
+               statement.executeUpdate(entry.getValue().getFile());
+
+                migration.setState(State.SUCCESS.state());
+                migration.setExecuted(Timestamp.valueOf(LocalDateTime.now()));
+                updateMigration(migration);
+            }
+
+
+            connection1.commit();
+
+        }catch (SQLException e){
+
+            try {
+                connection1.rollback();
+                if(migration!=null){
+                    migration.setState(State.FAILED.state());
+                    migration.setExecuted(Timestamp.valueOf(LocalDateTime.now()));
+                    updateMigration(migration);
+                }
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+        }finally {
+            try {
+                connection1.close();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        return migrations;
     }
 
 
