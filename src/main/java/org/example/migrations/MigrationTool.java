@@ -1,12 +1,9 @@
 package org.example.migrations;
 
 import org.example.command.*;
-import org.example.migrations.locking.*;
 import org.example.migrations.managers.*;
-import org.example.migrations.readers.*;
 import org.example.migrations.utils.*;
 
-import java.sql.*;
 
 public class MigrationTool {
     private final MigrationManager migrationManager;
@@ -21,7 +18,9 @@ public class MigrationTool {
 
     public void migrate(MigrationCommand migrationCommand){
 
-        propertiesUtil.readProperties(migrationCommand.getPropertiesPass());
+        //propertiesUtil.readProperties(migrationCommand.getPropertiesPass());
+
+        propertiesUtil.readProperties();
 
         migrationManager.execute(migrationCommand.getChangelogsPath());
 

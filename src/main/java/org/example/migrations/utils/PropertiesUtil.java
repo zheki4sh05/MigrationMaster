@@ -1,13 +1,15 @@
 package org.example.migrations.utils;
 
+import org.apache.commons.configuration2.*;
+import org.apache.commons.configuration2.builder.fluent.*;
+import org.apache.commons.configuration2.ex.*;
 import org.example.exceptions.*;
 import org.example.migrations.readers.*;
 
 import java.io.*;
 import java.util.*;
 
-import static org.example.settings.BaseSettings.appName;
-import static org.example.settings.BaseSettings.baseConfigFileName;
+import static org.example.settings.BaseSettings.*;
 
 public class PropertiesUtil {
     private static UserProperties userProperties;
@@ -31,6 +33,49 @@ public class PropertiesUtil {
         }
 
 
+    }
+
+    public void readProperties() {
+        Configurations configs = new Configurations();
+
+        try {
+            Configuration config = configs.properties(new File("application.properties"));
+            userProperties = parseProperties(config);
+            parseEnvVariables();
+            if(!UserProperties.checkProperties(userProperties))
+                throw new ApplicationPropertiesException("Error: properties are null");
+        } catch (ConfigurationException e) {
+            throw new ApplicationPropertiesException("Error: unable to parse properties: " + e.getMessage());
+        }
+//        }  catch (IOException e){
+//            throw new ApplicationPropertiesException("Error: unable to read application properties");
+//        }
+
+//        catch (FileNotFoundException e) {
+//        throw new ApplicationPropertiesException("Error: "+baseConfigFileName + " not found!");
+//    }
+
+    }
+
+    private void parseEnvVariables() {
+
+        String name = System.getenv(MIGRATION_DATABASE_NAME);
+
+        Map<String, String> envVariables = System.getenv();
+
+
+        userProperties.setUrl(System.getenv(MIGRATION_DATABASE_URL));
+        userProperties.setUsername(System.getenv(MIGRATION_DATABASE_NAME));
+        userProperties.setPassword(System.getenv(MIGRATION_DATABASE_PASSWORD));
+    }
+
+    private UserProperties parseProperties(Configuration config) {
+        return UserProperties.builder()
+                .driverName(config.getString(appName+".database.driver"))
+                .rollbackAll(Boolean.valueOf(config.getString(appName+".database.rollbackAll")))
+                .retryTime(Integer.parseInt(config.getString(appName+".database.retryTime")))
+                .rateLimiter(Integer.parseInt(config.getString(appName+".database.rateLimiter")))
+                .build();
     }
 
     private UserProperties parseProperties(Properties properties) {
