@@ -30,7 +30,7 @@ when download jar file:
     1) Add to your Main class MigrationClient.read(args)
     ````java
     import org.example.command.*;
-    public class Main {
+    public class MainClass {
        public static void main(String[] args) {
            MigrationClient.read(args);
        }
