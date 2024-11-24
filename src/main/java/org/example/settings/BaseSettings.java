@@ -15,6 +15,10 @@ public class BaseSettings {
     public final static String MIGRATION_DATABASE_URL="MIGRATION_DATABASE_URL";
     public final static String MIGRATION_DATABASE_NAME="MIGRATION_DATABASE_NAME";
     public final static String MIGRATION_DATABASE_PASSWORD="MIGRATION_DATABASE_PASSWORD";
+    public final static String command1 = "migrate";
+    public final static String command2 = "status";
+    public final static String command3 = "rollback";
+
 
 
 }

@@ -7,6 +7,7 @@ import org.example.migrations.locking.*;
 import org.example.migrations.readers.*;
 import org.example.migrations.utils.*;
 
+import java.sql.*;
 import java.util.*;
 import java.util.function.*;
 
@@ -23,23 +24,6 @@ public class MigrationManager {
         this.migrationFileReader = migrationFileReader;
         this.migrationExecutor = migrationExecutor;
     }
-    private void callExecutor(HashMap<String, Resource> filesData){
-
-//            for(Map.Entry<String,Resource> entry : filesData.entrySet()) {
-//
-//                Migration migration = migrationExecutor.execute(entry.getKey(), entry.getValue());
-//                System.out.println(migration);
-//
-//
-//
-//                if (migration.getState().equals(State.FAILED.state())) {
-//                    System.out.println("Migration failed!");
-//                    return;
-//                }
-//
-//            }
-
-    }
     public void execute(String changelogsPath) {
         if(PropertiesUtil.getProperties().getRollbackAll()){
             executePessimistic(changelogsPath);
@@ -48,37 +32,7 @@ public class MigrationManager {
         }
     }
     private void executePessimistic(String changelogsPath){
-//
-//        HashMap<String, Resource> filesData;
-//
-//        filesData = migrationFileReader.readFilesFromFolder(changelogsPath);
-//
-//        if(filesData.isEmpty())
-//            throw new MigrationFileException("Error: changelog directory is empty. No any migrations files found");
-//
-//        if(migrationExecutor.isHistoryExists()){
-//
-//            filesData= checkExistsMigrations(filesData);
-//
-////            List<Migration> migrationList = new ArrayList<>(migrationExecutor.getMigrations());
-////
-////            if(migrationList.size()==0){
-////                throw new MigrationExecutionException("Error: no migrations rows founded, migrations table exists, but is empty!");
-////            }
-////
-////            ChangelogMaster.checkSum(migrationList, filesData);
-////
-////            filesData = ChangelogMaster.processMigrations(migrationList, filesData);
-////
-////            if(filesData.isEmpty()){
-////                System.out.println("Warning: all migrations are applied!");
-////                return;
-////            }
-//
-//        }else{
-//            migrationExecutor.createMigrationTable();
-//
-//        }
+
 
         Function<HashMap<String, Resource>, List<Migration>> func = migrationExecutor::executeAll;
         lockingManager.executeMigrates(func, initMigrations(changelogsPath));
@@ -124,13 +78,36 @@ public class MigrationManager {
 
         filesData = ChangelogMaster.processMigrations(migrationList, filesData);
 
-//        if(filesData.isEmpty()){
-//            System.out.println("Warning: all migrations are applied!");
-//            return filesData;
-//        }
         return filesData;
     }
 
 
+    public List<Migration> getMigrations() {
+        if(migrationExecutor.isHistoryExists()){
+            List<Migration> migrationList = migrationExecutor.getMigrations();
+            migrationFileReader.save(migrationList);
+            return migrationList;
+        }else{
+           return new ArrayList<>();
+        }
+    }
 
+    public void clearAll() {
+        if(migrationExecutor.isHistoryExists()) {
+            List<Migration> migrationList = migrationExecutor.getMigrations();
+            try {
+                for (Migration migration : migrationList) {
+                    migrationExecutor.deleteMigration(migration);
+                }
+            } catch (SQLException e) {
+                throw new MigrationExecutionException("Error: unable to delete!");
+            }
+        }
+    }
+
+    public void drop() {
+
+        migrationExecutor.drop();
+
+    }
 }

@@ -1,4 +1,5 @@
 package org.example.migrations.readers;
+import com.fasterxml.jackson.databind.*;
 import org.example.entity.*;
 import org.example.exceptions.*;
 import org.example.settings.*;
@@ -153,5 +154,16 @@ public class MigrationFileReader {
     }
 
 
+    public void save(List<Migration> migrationList) {
 
+        String jsonName = "migrations.json";
+        MigrationDto migrationDto = new MigrationDto(migrationList);
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            objectMapper.writeValue(new File(jsonName), migrationDto);
+        } catch (IOException e) {
+            System.out.println("Error: unable to write result!");
+        }
+
+    }
 }

@@ -17,13 +17,11 @@ public class UserProperties {
     private Integer rateLimiter=0;
 
     public static boolean checkProperties(UserProperties properties) throws ApplicationPropertiesException {
-
             if(properties.getUrl() ==null || properties.driverName==null || properties.username==null || properties.password==null){
                 return false;
             }else {
                 return true;
             }
-
     }
 
 }

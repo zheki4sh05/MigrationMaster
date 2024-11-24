@@ -47,22 +47,9 @@ public class PropertiesUtil {
         } catch (ConfigurationException e) {
             throw new ApplicationPropertiesException("Error: unable to parse properties: " + e.getMessage());
         }
-//        }  catch (IOException e){
-//            throw new ApplicationPropertiesException("Error: unable to read application properties");
-//        }
-
-//        catch (FileNotFoundException e) {
-//        throw new ApplicationPropertiesException("Error: "+baseConfigFileName + " not found!");
-//    }
-
     }
 
     private void parseEnvVariables() {
-
-        String name = System.getenv(MIGRATION_DATABASE_NAME);
-
-        Map<String, String> envVariables = System.getenv();
-
 
         userProperties.setUrl(System.getenv(MIGRATION_DATABASE_URL));
         userProperties.setUsername(System.getenv(MIGRATION_DATABASE_NAME));

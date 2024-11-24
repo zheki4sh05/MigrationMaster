@@ -1,11 +1,7 @@
-# status: CLI
-# soon: Reports, testing and etc.
-# created: lock
 # Migration Master
 Migration Master - is a tool for managing database migrations.
 
 ## Table of Contents
-- [Motivation](#motivation)
 - [Get Started](#get-started)
 - [Feature](#feature)
 - [How to use](#how-to-use)
@@ -13,8 +9,6 @@ Migration Master - is a tool for managing database migrations.
 - [Architecture](#architecture)
 - [Logging](#logging)
 
-## Motivation
-Information on how to get started with Migration Master.
 
 ## Get Started
 Information on how to get started with Migration Master.

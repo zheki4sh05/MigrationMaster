@@ -17,6 +17,16 @@ public class MigrationCommandReader implements ConsoleInput, MasterMigrationApi,
 //        stop();
     }
 
+    @Override
+    public void status() {
+        migrationTool.status();
+    }
+
+    @Override
+    public void rollback() {
+        migrationTool.rollback();
+    }
+
     private void start(MigrationCommand migrationCommand){
         migrationTool.migrate(migrationCommand);
     }

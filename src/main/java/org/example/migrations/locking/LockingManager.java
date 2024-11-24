@@ -1,17 +1,13 @@
 package org.example.migrations.locking;
-
 import org.example.entity.*;
 import org.example.exceptions.*;
 import org.example.migrations.managers.*;
 import org.example.migrations.utils.*;
-
 import java.sql.*;
 import java.util.*;
 import java.util.function.*;
 
 import static org.example.settings.BaseSettings.tableLockName;
-
-
 public class LockingManager {
 
     private final String createLockTable =
@@ -25,23 +21,17 @@ public class LockingManager {
     )""";
 
     private final String initLockTable ="insert into "+tableLockName+ " (id, locked, version, created_at, updated_at) values (1, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ";
-
     private final String selectLock = "select locked from "+tableLockName+ " where id=1 for share";
 
     private final String lockTable = "update "+tableLockName+ " set locked=true,updated_at=CURRENT_TIMESTAMP  where id=1 ";
     private final String unlockTable = "update "+tableLockName+ " set locked=false where id=1 ";
 
-
-
     private final List<Migration> migrations = new ArrayList<>();
     public List<Migration> migrations() {
         return migrations;
     }
-
     private void createIfNotExists(){
-
         try( Connection connection1 = ConnectionManager.createConnection()){
-
             DatabaseMetaData databaseMetaData = connection1.getMetaData();
             try (ResultSet rs = databaseMetaData.getTables(null, null, tableLockName, null)) {
                if(!rs.next()){
@@ -54,9 +44,7 @@ public class LockingManager {
     }
 
     private void initLockTable(){
-
         try(Connection connection = ConnectionManager.createConnection();) {
-
             Statement statement = connection.createStatement();
             statement.execute(String.format(createLockTable, tableLockName));
             System.out.println("Table "+tableLockName+" is created");
@@ -67,17 +55,13 @@ public class LockingManager {
         }
     }
     protected void lock(){
-
         try(Connection connection = ConnectionManager.createConnection();) {
-
             Statement statement = connection.createStatement();
             statement.execute(lockTable);
             System.out.println("Table "+tableLockName+" locked");
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
     }
     protected void unlock(){
 
@@ -91,26 +75,18 @@ public class LockingManager {
             e.printStackTrace();
         }
     }
-
-
     public void executeMigrates(Function<HashMap<String, Resource>, List<Migration>> executor , HashMap<String, Resource> list){
-
         createIfNotExists();
-
         int limiter = PropertiesUtil.getProperties().getRateLimiter();
-
         try{
             if(limiter==0){
                 while(true) {
-
-
                     if(makeMigrations(executor,list)){
                         unlock();
                        break;
                     }
                 }
             }else if(limiter>0){
-
                 int count=limiter;
                 while (count>0){
                     System.out.println(count);
@@ -124,10 +100,8 @@ public class LockingManager {
 
             }
 
-        }catch (SQLException e){
-
-        }catch (InterruptedException e){
-
+        }catch (SQLException | InterruptedException e){
+            throw new LockingProcessException("Error: lock fail!");
         }
 
     }
@@ -157,9 +131,7 @@ public class LockingManager {
             migrations.addAll(executor.apply(list));
             return true;
         }else{
-
             Thread.sleep(PropertiesUtil.getProperties().getRetryTime());
-
             return false;
         }
 

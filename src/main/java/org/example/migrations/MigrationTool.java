@@ -1,8 +1,11 @@
 package org.example.migrations;
 
 import org.example.command.*;
+import org.example.entity.*;
 import org.example.migrations.managers.*;
 import org.example.migrations.utils.*;
+
+import java.util.*;
 
 
 public class MigrationTool {
@@ -27,4 +30,16 @@ public class MigrationTool {
     }
 
 
+    public void status() {
+        propertiesUtil.readProperties();
+     List<Migration> migrationsList =  migrationManager.getMigrations();
+     migrationsList.forEach(item-> System.out.println(item.toString()));
+    }
+
+    public void rollback() {
+        propertiesUtil.readProperties();
+         migrationManager.clearAll();
+        migrationManager.drop();
+
+    }
 }

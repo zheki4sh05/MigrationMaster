@@ -5,6 +5,7 @@ import lombok.*;
 import java.sql.*;
 @Data
 @Builder
+@ToString
 public class Migration {
     private String script;
     private Long checksum;

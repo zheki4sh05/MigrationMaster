@@ -26,4 +26,14 @@ public class MasterMigration {
         masterMigrationApi.read(migrationCommand);
 
     }
+
+    public static void status() {
+        MasterMigrationApi masterMigrationApi = ReaderFactory.createMigrationApi();
+        masterMigrationApi.status();
+    }
+
+    public static void rollback() {
+        MasterMigrationApi masterMigrationApi = ReaderFactory.createMigrationApi();
+        masterMigrationApi.rollback();
+    }
 }
