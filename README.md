@@ -4,6 +4,7 @@ Migration Master - is a tool for managing database migrations.
 ## Table of Contents
 - [Get Started](#get-started)
 - [Feature](#feature)
+- [How to use](#howtouse)
 - [Contact](#logging)
 
 
@@ -27,7 +28,7 @@ when download jar file:
     ```
 4) If you want to start migrations from console: 
     
-    1) Add to your Main class MigrationClient.read(args)
+    1) Add to your MainClass class MigrationClient.read(args)
     ````java
     import org.example.command.*;
     public class MainClass {
@@ -104,6 +105,30 @@ or
  ````java
    migration.database.driver=com.mysql.cj.jdbc.Driver
    ````
+You don't need to specify the location of application.properties. This tool will do it for you.
+
+## How to use
+Create a **"сhangelogs"** folder in your resources. This is where you can put your migration scripts.
+The library will apply migrations defined as SQL files
+The user must be able to control the sequence of migrations by using the correct naming: 
+
+ ````java
+  V1__name.sql
+   ````
+Through proper naming, the library is able to understand the current version of the database and maintain a history of migrations. This is also used for reporting purposes.
+
+You can get the report like this:
+ ````java
+   MasterMigration.status()
+   ````
+
+To delete migration records after a unsuccessful migration, use this
+
+ ````java
+   MasterMigration.rollback()
+   ````
+**Attention!** Any changelog changes are analyzed by the library. Otherwise there will be exceptions.
+**Attention!** The contents of migration files must not be changed under any circumstances. Even if the migration was unsuccessful, just create a new migration file and add it to the changelog folder. The contents of the files are recorded by a checksum, which is checked when migrations are called.
 ## Contact
 For suggestions and comments сontact me:
 ````java
