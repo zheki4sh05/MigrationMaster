@@ -11,7 +11,8 @@ Migration Master - is a tool for managing database migrations.
 
 
 ## Get Started
-Information on how to get started with Migration Master.
+Clone source code or download jar file from here: 
+
 
 ## Feature
 Description of the main features and capabilities.
