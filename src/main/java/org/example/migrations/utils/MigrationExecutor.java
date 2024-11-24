@@ -4,15 +4,16 @@ import lombok.*;
 import org.example.entity.*;
 import org.example.exceptions.*;
 import org.example.migrations.managers.*;
-import org.example.migrations.readers.*;
-
-
 import java.sql.*;
 import java.time.*;
 import java.util.*;
 
 import static org.example.settings.BaseSettings.tableName;
 
+/**
+ * Класс MigrationExecutor отвечает за выполнение миграций: создание таблицы для миграций,
+ * добавление, обновление, удаление миграционных записей, а также выполнение миграционных скриптов.
+ */
 public class MigrationExecutor {
 
     private final String migrationHistorySql = "select * from migrations";
@@ -37,7 +38,11 @@ public class MigrationExecutor {
     public MigrationExecutor() {
     }
 
-
+    /**
+     * Получает все миграции из базы данных.
+     *
+     * @return Список миграций.
+     */
     public List<Migration> getMigrations(){
         try(Connection connection = ConnectionManager.createConnection()) {
             Statement statement = connection.createStatement();
@@ -51,6 +56,13 @@ public class MigrationExecutor {
             throw new RuntimeException(e.getMessage());
         }
     }
+    /**
+     * Создает объект миграции на основе данных из ResultSet.
+     *
+     * @param resultSet Результат выполнения SQL-запроса.
+     * @return Объект миграции.
+     * @throws SQLException Если возникает ошибка при обработке ResultSet.
+     */
     private Migration buildMigration(ResultSet resultSet) throws SQLException{
 
         return Migration.builder()
@@ -60,7 +72,11 @@ public class MigrationExecutor {
                 .state(resultSet.getString("state"))
                 .build();
     }
-
+    /**
+     * Проверяет, существует ли таблица миграций в базе данных.
+     *
+     * @return true, если таблица существует, иначе false.
+     */
     public Boolean isHistoryExists(){
         try( Connection connection1 = ConnectionManager.createConnection()){
                 DatabaseMetaData databaseMetaData = connection1.getMetaData();
@@ -69,6 +85,9 @@ public class MigrationExecutor {
             throw  new RuntimeException();
         }
     }
+    /**
+     * Создает таблицу миграций в базе данных.
+     */
     public void createMigrationTable(){
         try(Connection connection = ConnectionManager.createConnection();) {
             Statement statement = connection.createStatement();
@@ -79,6 +98,15 @@ public class MigrationExecutor {
         };
 
     }
+    /**
+     * Создает запись миграции в таблице.
+     *
+     * @param scriptName Имя скрипта миграции.
+     * @param state Состояние миграции.
+     * @param checksum Контрольная сумма скрипта.
+     * @return Объект миграции.
+     * @throws SQLException Если возникает ошибка при выполнении SQL-запроса.
+     */
     public Migration createMigration(String scriptName, String state, Long checksum) throws SQLException {
 
                 try( Connection connection1 = ConnectionManager.createConnection()){
@@ -98,6 +126,12 @@ public class MigrationExecutor {
                             .build();
                 }
     }
+    /**
+     * Обновляет состояние миграции в базе данных.
+     *
+     * @param migration Миграция для обновления.
+     * @throws SQLException Если возникает ошибка при выполнении SQL-запроса.
+     */
     private void updateMigration(Migration migration) throws SQLException{
         try( Connection connection1 = ConnectionManager.createConnection()) {
             PreparedStatement statement = connection1.prepareStatement(updateSql);
@@ -106,6 +140,14 @@ public class MigrationExecutor {
              statement.executeUpdate();
         }
     }
+
+    /**
+     * Удаляет миграцию из базы данных.
+     *
+     * @param migration Миграция для удаления.
+     * @throws SQLException Если возникает ошибка при выполнении SQL-запроса.
+     */
+
     public void deleteMigration(Migration migration) throws SQLException{
         try(Connection connection1 = ConnectionManager.createConnection()){
             PreparedStatement statement = connection1.prepareStatement(deleteSql);
@@ -113,7 +155,12 @@ public class MigrationExecutor {
             statement.executeUpdate();
         }
     }
-
+    /**
+     * Выполняет скрипт миграции в базе данных.
+     *
+     * @param script SQL-скрипт миграции.
+     * @throws SQLException Если возникает ошибка при выполнении SQL-запроса.
+     */
     private void executeScript(String script) throws SQLException {
         Connection connection1 = ConnectionManager.createConnection();
         Statement statement = connection1.createStatement();
@@ -134,6 +181,12 @@ public class MigrationExecutor {
             connection1.close();
         }
     }
+    /**
+     * Выполняет миграцию для одного файла из переданных данных.
+     *
+     * @param map Карта миграций, где ключ - имя файла, значение - содержимое файла.
+     * @return Список выполненных миграций.
+     */
     public List<Migration> execute(HashMap<String, Resource> map) {
         String scriptName = map.keySet().stream().findFirst().get();
         Resource resource = map.values().stream().findFirst().get();
@@ -157,7 +210,12 @@ public class MigrationExecutor {
         migrations.add(newMigration);
         return migrations;
     }
-
+    /**
+     * Выполняет все миграции из переданных данных.
+     *
+     * @param updateData Карта миграций, где ключ - имя файла, значение - содержимое файла.
+     * @return Список выполненных миграций.
+     */
     public List<Migration> executeAll(HashMap<String, Resource> updateData){
 
         List<Migration> migrations = new ArrayList<>();
@@ -183,7 +241,6 @@ public class MigrationExecutor {
                     migration.setState(State.FAILED.state());
                     migration.setExecuted(Timestamp.valueOf(LocalDateTime.now()));
                     updateMigration(migration);
-//                    deleteMigration(migration);
                     migrations.add(migration);
                 }
             } catch (SQLException ex) {
@@ -200,7 +257,9 @@ public class MigrationExecutor {
         return migrations;
     }
 
-
+    /**
+     * Удаляет таблицу миграций из базы данных.
+     */
     public void drop() {
         try(   Connection connection1 = ConnectionManager.createConnection();
                Statement statement = connection1.createStatement()) {

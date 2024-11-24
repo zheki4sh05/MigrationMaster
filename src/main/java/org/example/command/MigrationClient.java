@@ -5,7 +5,13 @@ import org.example.exceptions.*;
 import java.net.*;
 import java.util.*;
 import static org.example.settings.BaseSettings.*;
+/** * Класс MigrationClient предназначен для выполнения различных команд миграции. */
 public class MigrationClient {
+
+    /** * Метод read обрабатывает входные аргументы и выполняет соответствующую команду миграции.
+     *
+     * @param args массив строковых аргументов командной строки
+     */
     public static void read(String[] args){
         if(args.length>0){
             String command = args[0];
@@ -33,7 +39,11 @@ public class MigrationClient {
             System.out.println("no args!");
         }
     }
-
+    /**
+     * Метод getChangelogPath возвращает путь к папке изменений.
+     *
+     * @return Optional, содержащий строку с путем к папке изменений, если она существует
+     */
     private static Optional<String> getChangelogPath(){
         ClassLoader classLoader = Main.class.getClassLoader();
         URL resource = classLoader.getResource(baseFolder);

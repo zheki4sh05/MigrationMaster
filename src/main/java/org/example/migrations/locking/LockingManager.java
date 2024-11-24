@@ -8,6 +8,10 @@ import java.util.*;
 import java.util.function.*;
 
 import static org.example.settings.BaseSettings.tableLockName;
+
+/**
+ * Класс LockingManager отвечает за управление блокировкой и выполнением миграций в базе данных.
+ */
 public class LockingManager {
 
     private final String createLockTable =
@@ -26,10 +30,21 @@ public class LockingManager {
     private final String lockTable = "update "+tableLockName+ " set locked=true,updated_at=CURRENT_TIMESTAMP  where id=1 ";
     private final String unlockTable = "update "+tableLockName+ " set locked=false where id=1 ";
 
+
     private final List<Migration> migrations = new ArrayList<>();
+
+    /**
+     * Возвращает список миграций.
+     *
+     * @return список миграций
+     */
     public List<Migration> migrations() {
         return migrations;
     }
+
+    /**
+     * Создает таблицу блокировки, если она не существует.
+     */
     private void createIfNotExists(){
         try( Connection connection1 = ConnectionManager.createConnection()){
             DatabaseMetaData databaseMetaData = connection1.getMetaData();
@@ -42,7 +57,10 @@ public class LockingManager {
             throw  new RuntimeException();
         }
     }
-
+    /**
+     * Инициализирует таблицу блокировки, создавая ее и вставляя начальные данные.
+     * Эта таблица используется для управления состоянием блокировки выполнения миграций.
+     */
     private void initLockTable(){
         try(Connection connection = ConnectionManager.createConnection();) {
             Statement statement = connection.createStatement();
@@ -54,6 +72,9 @@ public class LockingManager {
             e.printStackTrace();
         }
     }
+    /**
+     * Блокирует таблицу блокировки, устанавливая флаг "locked" в true.
+     */
     protected void lock(){
         try(Connection connection = ConnectionManager.createConnection();) {
             Statement statement = connection.createStatement();
@@ -63,18 +84,25 @@ public class LockingManager {
             e.printStackTrace();
         }
     }
+    /**
+     * Разблокирует таблицу блокировки, устанавливая флаг "locked" в false.
+     */
     protected void unlock(){
-
         try(Connection connection = ConnectionManager.createConnection();) {
-
             Statement statement = connection.createStatement();
             statement.execute(unlockTable);
             System.out.println("Table "+tableLockName+" not locked");
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
+    /**
+     * Выполняет миграции с учетом ограничений на количество попыток.
+     * Миграции выполняются с учетом блокировки таблицы и настроек для управления количеством попыток.
+     *
+     * @param executor Функция, которая выполняет миграции.
+     * @param list Список ресурсов, используемых для выполнения миграций.
+     */
     public void executeMigrates(Function<HashMap<String, Resource>, List<Migration>> executor , HashMap<String, Resource> list){
         createIfNotExists();
         int limiter = PropertiesUtil.getProperties().getRateLimiter();
@@ -105,7 +133,12 @@ public class LockingManager {
         }
 
     }
-
+    /**
+     * Пытается заблокировать таблицу, если она не заблокирована.
+     * Если таблица уже заблокирована, метод возвращает false.
+     *
+     * @return true, если блокировка была успешно получена, иначе false.
+     */
     private Boolean tryLock() {
 
         try (Connection connection = ConnectionManager.createConnection()) {
@@ -126,6 +159,16 @@ public class LockingManager {
         return false;
     }
 
+    /**
+     * Пытается выполнить миграции, если таблица успешно заблокирована.
+     * В случае неудачи метод повторяет попытку через заданный интервал времени.
+     *
+     * @param executor Функция, которая выполняет миграции.
+     * @param list Список ресурсов для выполнения миграций.
+     * @return true, если миграции выполнены, иначе false.
+     * @throws InterruptedException Если поток был прерван во время ожидания.
+     * @throws SQLException Если произошла ошибка при выполнении SQL-запроса.
+     */
     private Boolean makeMigrations(Function<HashMap<String, Resource>, List<Migration>> executor , HashMap<String, Resource> list) throws InterruptedException,SQLException {
         if (tryLock()) {
             migrations.addAll(executor.apply(list));
