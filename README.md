@@ -9,7 +9,7 @@ Migration Master - is a tool for managing database migrations.
 
 
 ## Get Started
-Clone source code or download jar file from here: 
+Clone source code or download jar file from **here**: https://drive.google.com/drive/folders/1cvns1Oh32IDYkP2e7Ao01braNKxW5C6M?usp=sharing
 
 when download jar file:
 1) Add migration.jar to your project dependencies

@@ -1,1 +1,0 @@
-{"migrationList":[{"script":"V1__init.sql","checksum":3229766698,"executed":1732468083983,"state":"SUCCESS","locked":true},{"script":"V2__update.sql","checksum":447857251,"executed":1732468084657,"state":"SUCCESS","locked":true},{"script":"V3__update2.sql","checksum":1200493132,"executed":1732468085168,"state":"FAILED","locked":false}]}
