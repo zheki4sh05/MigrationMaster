@@ -1,5 +1,6 @@
 package org.example.migrations.readers;
 import com.fasterxml.jackson.databind.*;
+import lombok.extern.slf4j.*;
 import org.example.entity.*;
 import org.example.exceptions.*;
 import org.example.settings.*;
@@ -10,12 +11,14 @@ import java.util.*;
 import java.util.zip.*;
 
 import static org.example.settings.BaseSettings.fileMigrationExtension;
+import static org.example.settings.BaseSettings.tableLockName;
 
 /**
  * Класс MigrationFileReader отвечает за чтение миграционных файлов из указанной папки.
  * Он извлекает имена файлов, сортирует их по версии, проверяет правильность именования,
  * вычисляет контрольные суммы и сохраняет информацию о миграциях в формате JSON.
  */
+@Slf4j
 public class MigrationFileReader {
     /**
      * Читает миграционные файлы из указанной папки, сортирует их и возвращает их содержимое и контрольные суммы.
@@ -142,7 +145,7 @@ public class MigrationFileReader {
         try {
             objectMapper.writeValue(new File(jsonName), migrationDto);
         } catch (IOException e) {
-            System.out.println("Error: unable to write result!");
+            log.info("Error: unable to write result!");
         }
 
     }

@@ -1,6 +1,7 @@
 package org.example.migrations.utils;
 
 import lombok.*;
+import lombok.extern.slf4j.*;
 import org.example.entity.*;
 import org.example.exceptions.*;
 import org.example.migrations.managers.*;
@@ -14,6 +15,7 @@ import static org.example.settings.BaseSettings.tableName;
  * Класс MigrationExecutor отвечает за выполнение миграций: создание таблицы для миграций,
  * добавление, обновление, удаление миграционных записей, а также выполнение миграционных скриптов.
  */
+@Slf4j
 public class MigrationExecutor {
 
     private final String migrationHistorySql = "select * from migrations";
@@ -92,7 +94,7 @@ public class MigrationExecutor {
         try(Connection connection = ConnectionManager.createConnection();) {
             Statement statement = connection.createStatement();
             statement.execute(String.format(createTableSql, tableName));
-            System.out.println("Table "+tableName+" is created");
+            log.warn("Table "+tableName+" is created");
         } catch (SQLException e) {
             e.printStackTrace();
         };
@@ -140,7 +142,6 @@ public class MigrationExecutor {
              statement.executeUpdate();
         }
     }
-
     /**
      * Удаляет миграцию из базы данных.
      *
@@ -253,7 +254,6 @@ public class MigrationExecutor {
                 throw new RuntimeException(e);
             }
         }
-
         return migrations;
     }
 

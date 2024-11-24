@@ -1,11 +1,13 @@
 package org.example.command;
 
+import lombok.extern.slf4j.*;
 import org.example.*;
 import org.example.exceptions.*;
 import java.net.*;
 import java.util.*;
 import static org.example.settings.BaseSettings.*;
 /** * Класс MigrationClient предназначен для выполнения различных команд миграции. */
+@Slf4j
 public class MigrationClient {
 
     /** * Метод read обрабатывает входные аргументы и выполняет соответствующую команду миграции.
@@ -30,13 +32,13 @@ public class MigrationClient {
                     break;
                 }
                 default:{
-                    System.out.println("Unused command: "+command);
+                    log.info("Unused command: "+command);
                     break;
                 }
             }
 
         }else{
-            System.out.println("no args!");
+            log.info("no args!");
         }
     }
     /**

@@ -66,7 +66,6 @@ public class MigrationManager {
     private void executeOptimistic(String changelogsPath){
         while(true){
             var map  = initMigrations(changelogsPath);
-
             if(map.isEmpty())
                 break;
 
@@ -150,8 +149,6 @@ public class MigrationManager {
      * Удаляет таблицу миграций из базы данных.
      */
     public void drop() {
-
         migrationExecutor.drop();
-
     }
 }

@@ -1,4 +1,5 @@
 package org.example.migrations.locking;
+import lombok.extern.slf4j.*;
 import org.example.entity.*;
 import org.example.exceptions.*;
 import org.example.migrations.managers.*;
@@ -12,6 +13,7 @@ import static org.example.settings.BaseSettings.tableLockName;
 /**
  * Класс LockingManager отвечает за управление блокировкой и выполнением миграций в базе данных.
  */
+@Slf4j
 public class LockingManager {
 
     private final String createLockTable =
@@ -65,9 +67,9 @@ public class LockingManager {
         try(Connection connection = ConnectionManager.createConnection();) {
             Statement statement = connection.createStatement();
             statement.execute(String.format(createLockTable, tableLockName));
-            System.out.println("Table "+tableLockName+" is created");
+            log.info("Table "+tableLockName+" is created");
             statement.execute(initLockTable);
-            System.out.println("Table "+tableLockName+" init");
+            log.info("Table "+tableLockName+" init");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -79,7 +81,7 @@ public class LockingManager {
         try(Connection connection = ConnectionManager.createConnection();) {
             Statement statement = connection.createStatement();
             statement.execute(lockTable);
-            System.out.println("Table "+tableLockName+" locked");
+            log.info("Table "+tableLockName+" locked");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -91,7 +93,7 @@ public class LockingManager {
         try(Connection connection = ConnectionManager.createConnection();) {
             Statement statement = connection.createStatement();
             statement.execute(unlockTable);
-            System.out.println("Table "+tableLockName+" not locked");
+            log.info("Table "+tableLockName+" not locked");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -117,7 +119,6 @@ public class LockingManager {
             }else if(limiter>0){
                 int count=limiter;
                 while (count>0){
-                    System.out.println(count);
                     if(makeMigrations(executor,list)){
                         unlock();
                         break;
