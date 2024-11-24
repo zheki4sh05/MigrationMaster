@@ -1,6 +1,4 @@
 package org.example.migrations.utils;
-
-import lombok.*;
 import lombok.extern.slf4j.*;
 import org.example.entity.*;
 import org.example.exceptions.*;
@@ -8,7 +6,6 @@ import org.example.migrations.managers.*;
 import java.sql.*;
 import java.time.*;
 import java.util.*;
-
 import static org.example.settings.BaseSettings.tableName;
 
 /**
@@ -58,22 +55,7 @@ public class MigrationExecutor {
             throw new RuntimeException(e.getMessage());
         }
     }
-    /**
-     * Создает объект миграции на основе данных из ResultSet.
-     *
-     * @param resultSet Результат выполнения SQL-запроса.
-     * @return Объект миграции.
-     * @throws SQLException Если возникает ошибка при обработке ResultSet.
-     */
-    private Migration buildMigration(ResultSet resultSet) throws SQLException{
 
-        return Migration.builder()
-                .checksum(resultSet.getLong("checksum"))
-                .executed(resultSet.getTimestamp("executed"))
-                .script(resultSet.getString("script"))
-                .state(resultSet.getString("state"))
-                .build();
-    }
     /**
      * Проверяет, существует ли таблица миграций в базе данных.
      *
@@ -128,20 +110,7 @@ public class MigrationExecutor {
                             .build();
                 }
     }
-    /**
-     * Обновляет состояние миграции в базе данных.
-     *
-     * @param migration Миграция для обновления.
-     * @throws SQLException Если возникает ошибка при выполнении SQL-запроса.
-     */
-    private void updateMigration(Migration migration) throws SQLException{
-        try( Connection connection1 = ConnectionManager.createConnection()) {
-            PreparedStatement statement = connection1.prepareStatement(updateSql);
-            statement.setString(1, migration.getState());
-            statement.setString(2, migration.getScript());
-             statement.executeUpdate();
-        }
-    }
+
     /**
      * Удаляет миграцию из базы данных.
      *
@@ -156,32 +125,7 @@ public class MigrationExecutor {
             statement.executeUpdate();
         }
     }
-    /**
-     * Выполняет скрипт миграции в базе данных.
-     *
-     * @param script SQL-скрипт миграции.
-     * @throws SQLException Если возникает ошибка при выполнении SQL-запроса.
-     */
-    private void executeScript(String script) throws SQLException {
-        Connection connection1 = ConnectionManager.createConnection();
-        Statement statement = connection1.createStatement();
-        try {
-            connection1.setAutoCommit(false);
-            statement.executeUpdate(script);
-            connection1.commit();
-        }catch (SQLException e){
-            try {
-                connection1.rollback();
 
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
-            throw new SQLException(e.getMessage());
-        }finally {
-            statement.close();
-            connection1.close();
-        }
-    }
     /**
      * Выполняет миграцию для одного файла из переданных данных.
      *
@@ -269,6 +213,61 @@ public class MigrationExecutor {
         }catch (SQLException e){
             throw new MigrationExecutionException("Error: drop fail!");
         }
+    }
+    /**
+     * Выполняет скрипт миграции в базе данных.
+     *
+     * @param script SQL-скрипт миграции.
+     * @throws SQLException Если возникает ошибка при выполнении SQL-запроса.
+     */
+    private void executeScript(String script) throws SQLException {
+        Connection connection1 = ConnectionManager.createConnection();
+        Statement statement = connection1.createStatement();
+        try {
+            connection1.setAutoCommit(false);
+            statement.executeUpdate(script);
+            connection1.commit();
+        }catch (SQLException e){
+            try {
+                connection1.rollback();
 
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+            throw new SQLException(e.getMessage());
+        }finally {
+            statement.close();
+            connection1.close();
+        }
+    }
+    /**
+     * Создает объект миграции на основе данных из ResultSet.
+     *
+     * @param resultSet Результат выполнения SQL-запроса.
+     * @return Объект миграции.
+     * @throws SQLException Если возникает ошибка при обработке ResultSet.
+     */
+    private Migration buildMigration(ResultSet resultSet) throws SQLException{
+
+        return Migration.builder()
+                .checksum(resultSet.getLong("checksum"))
+                .executed(resultSet.getTimestamp("executed"))
+                .script(resultSet.getString("script"))
+                .state(resultSet.getString("state"))
+                .build();
+    }
+    /**
+     * Обновляет состояние миграции в базе данных.
+     *
+     * @param migration Миграция для обновления.
+     * @throws SQLException Если возникает ошибка при выполнении SQL-запроса.
+     */
+    private void updateMigration(Migration migration) throws SQLException{
+        try( Connection connection1 = ConnectionManager.createConnection()) {
+            PreparedStatement statement = connection1.prepareStatement(updateSql);
+            statement.setString(1, migration.getState());
+            statement.setString(2, migration.getScript());
+            statement.executeUpdate();
+        }
     }
 }

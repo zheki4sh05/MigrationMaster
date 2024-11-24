@@ -28,11 +28,8 @@ public final class ConnectionManager {
      * @throws RuntimeException если произошла ошибка при загрузке драйвера или установке соединения.
      */
     public static  Connection createConnection() {
-
         UserProperties properties = PropertiesUtil.getProperties();
-
         try{
-
             if(!isLoaded)
                 Class.forName(properties.getDriverName()).getDeclaredConstructor().newInstance();
             isLoaded = true;

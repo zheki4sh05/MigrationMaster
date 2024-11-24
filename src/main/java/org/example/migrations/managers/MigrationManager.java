@@ -16,7 +16,6 @@ import java.util.function.*;
  * читает файлы миграций и управляет выполнением миграций с использованием LockingManager и MigrationExecutor.
  */
 public class MigrationManager {
-
     private final MigrationFileReader migrationFileReader;
 
     private final MigrationExecutor migrationExecutor;
@@ -45,6 +44,47 @@ public class MigrationManager {
             executeOptimistic(changelogsPath);
         }
     }
+
+
+    /**
+     * Возвращает список миграций, которые должны быть выполнены.
+     * Если история миграций существует, загружаются выполненные миграции из базы данных.
+     * Если история отсутствует, возвращается пустой список.
+     *
+     * @return Список миграций.
+     */
+    public List<Migration> getMigrations() {
+        if(migrationExecutor.isHistoryExists()){
+            List<Migration> migrationList = migrationExecutor.getMigrations();
+            migrationFileReader.save(migrationList);
+            return migrationList;
+        }else{
+            return new ArrayList<>();
+        }
+    }
+    /**
+     * Очищает все миграции из базы данных, если история миграций существует.
+     * В случае ошибки при удалении миграций выбрасывается исключение.
+     */
+    public void clearAll() {
+        if(migrationExecutor.isHistoryExists()) {
+            List<Migration> migrationList = migrationExecutor.getMigrations();
+            try {
+                for (Migration migration : migrationList) {
+                    migrationExecutor.deleteMigration(migration);
+                }
+            } catch (SQLException e) {
+                throw new MigrationExecutionException("Error: unable to delete!");
+            }
+        }
+    }
+    /**
+     * Удаляет таблицу миграций из базы данных.
+     */
+    public void drop() {
+        migrationExecutor.drop();
+    }
+
     /**
      * Выполняет миграции с использованием пессимистичного подхода:
      * блокирует выполнение миграций и выполняет их все сразу.
@@ -101,54 +141,12 @@ public class MigrationManager {
      */
     private HashMap<String, Resource> checkExistsMigrations(HashMap<String, Resource> filesData){
         List<Migration> migrationList = new ArrayList<>(migrationExecutor.getMigrations());
-
         if(migrationList.size()==0){
             throw new MigrationExecutionException("Error: no migrations rows founded, migrations table exists, but is empty!");
         }
-
         ChangelogMaster.checkSum(migrationList, filesData);
-
         filesData = ChangelogMaster.processMigrations(migrationList, filesData);
-
         return filesData;
     }
 
-    /**
-     * Возвращает список миграций, которые должны быть выполнены.
-     * Если история миграций существует, загружаются выполненные миграции из базы данных.
-     * Если история отсутствует, возвращается пустой список.
-     *
-     * @return Список миграций.
-     */
-    public List<Migration> getMigrations() {
-        if(migrationExecutor.isHistoryExists()){
-            List<Migration> migrationList = migrationExecutor.getMigrations();
-            migrationFileReader.save(migrationList);
-            return migrationList;
-        }else{
-           return new ArrayList<>();
-        }
-    }
-    /**
-     * Очищает все миграции из базы данных, если история миграций существует.
-     * В случае ошибки при удалении миграций выбрасывается исключение.
-     */
-    public void clearAll() {
-        if(migrationExecutor.isHistoryExists()) {
-            List<Migration> migrationList = migrationExecutor.getMigrations();
-            try {
-                for (Migration migration : migrationList) {
-                    migrationExecutor.deleteMigration(migration);
-                }
-            } catch (SQLException e) {
-                throw new MigrationExecutionException("Error: unable to delete!");
-            }
-        }
-    }
-    /**
-     * Удаляет таблицу миграций из базы данных.
-     */
-    public void drop() {
-        migrationExecutor.drop();
-    }
 }

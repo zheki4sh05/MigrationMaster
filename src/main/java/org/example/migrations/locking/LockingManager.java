@@ -45,6 +45,43 @@ public class LockingManager {
     }
 
     /**
+     * Выполняет миграции с учетом ограничений на количество попыток.
+     * Миграции выполняются с учетом блокировки таблицы и настроек для управления количеством попыток.
+     *
+     * @param executor Функция, которая выполняет миграции.
+     * @param list Список ресурсов, используемых для выполнения миграций.
+     */
+    public void executeMigrates(Function<HashMap<String, Resource>, List<Migration>> executor , HashMap<String, Resource> list){
+        createIfNotExists();
+        int limiter = PropertiesUtil.getProperties().getRateLimiter();
+        try{
+            if(limiter==0){
+                while(true) {
+                    if(makeMigrations(executor,list)){
+                        unlock();
+                        break;
+                    }
+                }
+            }else if(limiter>0){
+                int count=limiter;
+                while (count>0){
+                    if(makeMigrations(executor,list)){
+                        unlock();
+                        break;
+                    }else {
+                        count--;
+                    }
+                }
+
+            }
+
+        }catch (SQLException | InterruptedException e){
+            throw new LockingProcessException("Error: lock fail!");
+        }
+
+    }
+
+    /**
      * Создает таблицу блокировки, если она не существует.
      */
     private void createIfNotExists(){
@@ -98,42 +135,7 @@ public class LockingManager {
             e.printStackTrace();
         }
     }
-    /**
-     * Выполняет миграции с учетом ограничений на количество попыток.
-     * Миграции выполняются с учетом блокировки таблицы и настроек для управления количеством попыток.
-     *
-     * @param executor Функция, которая выполняет миграции.
-     * @param list Список ресурсов, используемых для выполнения миграций.
-     */
-    public void executeMigrates(Function<HashMap<String, Resource>, List<Migration>> executor , HashMap<String, Resource> list){
-        createIfNotExists();
-        int limiter = PropertiesUtil.getProperties().getRateLimiter();
-        try{
-            if(limiter==0){
-                while(true) {
-                    if(makeMigrations(executor,list)){
-                        unlock();
-                       break;
-                    }
-                }
-            }else if(limiter>0){
-                int count=limiter;
-                while (count>0){
-                    if(makeMigrations(executor,list)){
-                        unlock();
-                        break;
-                    }else {
-                        count--;
-                    }
-                }
 
-            }
-
-        }catch (SQLException | InterruptedException e){
-            throw new LockingProcessException("Error: lock fail!");
-        }
-
-    }
     /**
      * Пытается заблокировать таблицу, если она не заблокирована.
      * Если таблица уже заблокирована, метод возвращает false.
@@ -141,9 +143,7 @@ public class LockingManager {
      * @return true, если блокировка была успешно получена, иначе false.
      */
     private Boolean tryLock() {
-
         try (Connection connection = ConnectionManager.createConnection()) {
-
             Statement statement = connection.createStatement();
             ResultSet rs = statement.executeQuery(selectLock);
             if (rs.next()) {
@@ -153,13 +153,11 @@ public class LockingManager {
                 }
                 return !locked;
             }
-
         } catch (SQLException e) {
             throw new LockingProcessException("Error: There were problems when taking the lock." + e.getMessage());
         }
         return false;
     }
-
     /**
      * Пытается выполнить миграции, если таблица успешно заблокирована.
      * В случае неудачи метод повторяет попытку через заданный интервал времени.
