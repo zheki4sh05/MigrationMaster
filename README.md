@@ -4,8 +4,8 @@ Migration Master - is a tool for managing database migrations.
 ## Table of Contents
 - [Get Started](#get-started)
 - [Feature](#feature)
-- [How to use](#howtouse)
-- [Contact](#logging)
+- [How to use](#how-to-use)
+- [Contact](#contact)
 
 
 ## Get Started
